@@ -125,4 +125,17 @@ async function coachReply() {
     }
 }
 
-/* Available Models list omitted for brevity */
+/* Available models (examples) - choose one and replace in the request URL above:
+   - gemini-3-flash-preview        : fast, lower-latency text generation (good for UI responsiveness)
+   - gemini-3-pro                  : higher-capacity, more detailed answers (slower, more thorough)
+   - gemini-2.1                    : stable general-purpose model
+   - gemini-1.0                    : legacy / smaller model
+
+   Example: change the fetch URL to use a different model name
+     `https://generativelanguage.googleapis.com/v1beta/models/<MODEL_NAME>:generateContent?key=${API_KEY}`
+
+   Notes:
+   - Use the model that fits your latency / quality tradeoff.
+   - Some models may require billing or access permissions on your Google Cloud project.
+   - If you need code or instruction-tuned variants, check the provider docs for available model IDs.
+*/
