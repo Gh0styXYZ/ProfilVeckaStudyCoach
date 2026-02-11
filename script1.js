@@ -2,7 +2,25 @@ let tasks = [];
 let done = 0;
 
 // --- CONFIGURATION ---
-const API_KEY = "API.KEY.HERE"; // <--- PASTE YOUR KEY HERE
+// API key is read from localStorage to avoid embedding secrets in source.
+function getApiKey() {
+  return localStorage.getItem('API_KEY') || '';
+}
+
+function saveApiKey(key) {
+  if (!key) return;
+  localStorage.setItem('API_KEY', key);
+}
+
+function clearApiKey() {
+  localStorage.removeItem('API_KEY');
+}
+
+// Convenience prompt to set the API key (calls `saveApiKey`).
+function promptAndSaveApiKey() {
+  const k = prompt('Klistra in din API-nyckel (sparas i localStorage):');
+  if (k) saveApiKey(k.trim());
+}
 const SYSTEM_PROMPT = "Du är en lärare på akademisk nivå. Svara kort och tydligt på enkla frågor. Var uppmuntrande och använd punktlistor när det behövs. Vid svårare frågor, utveckla svaret mer. Strukturera dina svar klart och koncist.";
 
 // Theme toggle
@@ -78,7 +96,6 @@ function completeTask(index) {
 async function coachReply() {
     const inputField = document.getElementById('coachInput');
     const outputField = document.getElementById('coachOutput');
-    
     const userText = inputField.value.trim();
     if (!userText) return;
   
@@ -88,9 +105,17 @@ async function coachReply() {
   
     try {
       const finalPrompt = `${SYSTEM_PROMPT}\n\nFråga: ${userText}`;
-  
+
+      const model = document.getElementById('modelSelect')?.value || 'gemini-3-flash-preview';
+
+      const API_KEY = getApiKey();
+      if (!API_KEY) {
+        outputField.innerHTML = "<span style='color:#f59e0b'>Ingen API-nyckel är inställd. Kör <code>promptAndSaveApiKey()</code> eller använd <code>saveApiKey(your_key)</code> i konsolen.</span>";
+        return;
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -73,11 +73,19 @@
     <input id="deadline" type="date">
     <button class="primary" onclick="addTask()">Lägg till</button>
 
+    <p class="empty muted" id="planEmpty">Inga uppgifter i din studieplan.</p>
     <ul id="taskList"></ul>
   </section>
 
   <section id="coach" class="page">
     <h2>AI Coach</h2>
+    <label for="modelSelect" class="muted">Välj modell</label>
+    <select id="modelSelect" aria-label="Välj AI-modell">
+      <option value="gemini-3-flash-preview">gemini-3-flash-preview (snabb)</option>
+      <option value="gemini-3-pro">gemini-3-pro (detaljerad)</option>
+      <option value="gemini-2.1">gemini-2.1</option>
+      <option value="gemini-1.0">gemini-1.0 (liten)</option>
+    </select>
     <textarea id="coachInput" placeholder="Vad behöver du hjälp med?"></textarea>
     <button class="primary" onclick="coachReply()">Få tips</button>
     <p id="coachOutput"></p>
