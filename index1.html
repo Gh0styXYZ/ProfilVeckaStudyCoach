@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+
+<nav>
+  <h1>StudyPilot</h1>
+  <ul>
+    <li><button class="nav-btn" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</button></li>
+    <li><button class="nav-btn" data-section="plan" onclick="showSection('plan')">Studieplan</button></li>
+    <li><button class="nav-btn" data-section="coach" onclick="showSection('coach')">AI Coach</button></li>
+    <li><button class="nav-btn" data-section="progress" onclick="showSection('progress')">Progress</button></li>
+    <li><button class="nav-btn" data-section="profile" onclick="showSection('profile')">Profil</button></li>
+  </ul>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">☾</button>
+</nav>
+
+<main>
+  <section id="dashboard" class="page active">
+    <div class="dashboard-grid">
+      <div class="dashboard-main">
+        <div class="welcome-card">
+          <h2>Välkommen tillbaka!</h2>
+           <p class="muted">Här ser du en översikt över dina uppgifter och dina framsteg.</p>
+          <div class="stat-box">
+            <div class="stat-icon">✓</div>
+            <div class="stat-content">
+              <p>Du har <strong><span id="taskCount">0</span> uppgifter</strong> kvar idag.</p>
+                <button class="primary small">Bra jobbat! 🎉</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tasks-section">
+          <h3>Dagens uppgifter</h3>
+          <ul id="dashboardTasks"></ul>
+        </div>
+      </div>
+      
+      <aside class="dashboard-sidebar">
+        <div class="widget">
+          <h3>Progress</h3>
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 50%"></div>
+            </div>
+            <p class="progress-text">7 / 12 Klara denna vecka</p>
+          </div>
+        </div>
+        
+        <div class="widget">
+          <h3>Din Checklista</h3>
+          <ul class="checklist">
+            <li class="done">Matte - Plugga kapitel 5</li>
+             <li>Svenska - Skriv bokanalys</li>
+            <li>Historia - Läs om andra världskriget</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="plan" class="page">
+    <h2>Studieplan</h2>
+    <input id="course" placeholder="Kurs">
+    <input id="task" placeholder="Uppgift">
+    <input id="deadline" type="date">
+    <button class="primary" onclick="addTask()">Lägg till</button>
+
+    <ul id="taskList"></ul>
+  </section>
+
+  <section id="coach" class="page">
+    <h2>AI Coach</h2>
+    <textarea id="coachInput" placeholder="Vad behöver du hjälp med?"></textarea>
+    <button class="primary" onclick="coachReply()">Få tips</button>
+    <p id="coachOutput"></p>
+  </section>
+
+  <section id="progress" class="page">
+    <h2>Progress</h2>
+    <p>Klara uppgifter: <span id="doneCount">0</span></p>
+  </section>
+
+  <section id="profile" class="page">
+    <h2>Profil</h2>
+    <input placeholder="Ditt namn">
+    <input placeholder="Ditt mål">
+  </section>
+</main>
+
+<script src="script1.js"></script>
+</body>
+</html>

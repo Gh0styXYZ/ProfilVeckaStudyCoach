@@ -1,14 +1,49 @@
-
 let tasks = [];
 let done = 0;
 
 // --- CONFIGURATION ---
 const API_KEY = "API.KEY.HERE"; // <--- PASTE YOUR KEY HERE
-const SYSTEM_PROMPT = "Du är en akdemisk nivå lärare. Svara kort på letta frågor. Svra uppmuntrande och använd punkter om det behövs. Om det är svart fråga utveckal extra. Structurera dina svår";
+const SYSTEM_PROMPT = "Du är en lärare på akademisk nivå. Svara kort och tydligt på enkla frågor. Var uppmuntrande och använd punktlistor när det behövs. Vid svårare frågor, utveckla svaret mer. Strukturera dina svar klart och koncist.";
+
+// Theme toggle
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeButton(savedTheme);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeButton(next);
+}
+
+function updateThemeButton(theme) {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.textContent = theme === 'dark' ? '☀' : '☾';
+}
+
+// Initialize theme on load and mark dashboard active
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+  });
+} else {
+  initTheme();
+  document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+}
 
 function showSection(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // mark active nav button
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
 }
 
 function addTask() {
@@ -40,7 +75,6 @@ function completeTask(index) {
 }
 
 // --- UPDATED AI COACH LOGIC ---
-// --- UPDATED AI COACH LOGIC (DEBUG VERSION) ---
 async function coachReply() {
     const inputField = document.getElementById('coachInput');
     const outputField = document.getElementById('coachOutput');
@@ -68,22 +102,19 @@ async function coachReply() {
   
       const data = await response.json();
       
-      // --- DEBUGGING: Check for API Errors ---
       if (data.error) {
           console.error("API Error:", data.error);
           outputField.innerHTML = `<span style="color:red; font-weight:bold;">API ERROR:</span><br>${data.error.message}`;
           return;
       }
   
-      // 2. Handle Success
       if (data.candidates && data.candidates[0].content) {
          const rawText = data.candidates[0].content.parts[0].text;
          const formattedText = rawText
-           .replace(/\*\*(.*?)\* \* /g, '<b>$1</b>')
-           .replace(/\* /g, '•'); 
+           .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+           .replace(/\* /g, '• ');
          outputField.innerHTML = formattedText;
       } else {
-         // This happens if the AI returns an empty response (rare)
          console.log("Full Response:", data);
          outputField.innerText = "Svaret var tomt. Kolla konsolen (F12) för mer info.";
       }
@@ -92,36 +123,6 @@ async function coachReply() {
       console.error("Network Error:", error);
       outputField.innerHTML = "<span style='color:red'>Nätverksfel. Kolla att du har internet.</span>";
     }
-  }
-    /*
-    Available Models for your Key:
-gemini-2.5-flash
-gemini-2.5-pro
-gemini-2.0-flash
-gemini-2.0-flash-001
-gemini-2.0-flash-lite-001
-gemini-2.0-flash-lite
-gemini-exp-1206
-gemini-2.5-flash-preview-tts
-gemini-2.5-pro-preview-tts
-gemma-3-1b-it
-gemma-3-4b-it
-gemma-3-12b-it
-gemma-3-27b-it
-gemma-3n-e4b-it
-gemma-3n-e2b-it
-gemini-flash-latest
-gemini-flash-lite-latest
-gemini-pro-latest
-gemini-2.5-flash-lite
-gemini-2.5-flash-image
-gemini-2.5-flash-preview-09-2025
-gemini-2.5-flash-lite-preview-09-2025
-gemini-3-pro-preview
-gemini-3-flash-preview
-gemini-3-pro-image-preview
-nano-banana-pro-preview
-gemini-robotics-er-1.5-preview
-gemini-2.5-computer-use-preview-10-2025
-deep-research-pro-preview-12-2025
-    */ 
+}
+
+/* Available Models list omitted for brevity */
