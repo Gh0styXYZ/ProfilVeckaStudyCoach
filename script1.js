@@ -88,15 +88,20 @@ if (document.readyState === 'loading') {
 
 function showSection(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const page = document.getElementById(id);
+  if (!page) return;
+  page.classList.add('active');
   // mark active nav button
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
 }
 
 function addTask() {
-  const course = document.getElementById('course').value;
-  const task = document.getElementById('task').value;
+  const courseEl = document.getElementById('course');
+  const taskEl = document.getElementById('task');
+  if (!courseEl || !taskEl) return;
+  const course = courseEl.value.trim();
+  const task = taskEl.value.trim();
   if (!course || !task) return;
   tasks.push({ course, task, done: false });
   updateTasks();
@@ -104,34 +109,41 @@ function addTask() {
 
 function updateTasks() {
   const list = document.getElementById('taskList');
+  if (!list) return;
   list.innerHTML = '';
   tasks.forEach((t, i) => {
     const li = document.createElement('li');
     li.innerHTML = `${t.course}: ${t.task} <button onclick="completeTask(${i})">✔</button>`;
     list.appendChild(li);
   });
-  document.getElementById('taskCount').innerText = tasks.length - done;
-  document.getElementById('doneCount').innerText = done;
+  // Recalculate done in case tasks were mutated directly
+  done = tasks.filter(t => t.done).length;
+  const taskCountEl = document.getElementById('taskCount');
+  const doneCountEl = document.getElementById('doneCount');
+  if (taskCountEl) taskCountEl.innerText = Math.max(0, tasks.length - done);
+  if (doneCountEl) doneCountEl.innerText = done;
 }
 
 function completeTask(index) {
+  if (!tasks || !tasks[index]) return;
   if (!tasks[index].done) {
     tasks[index].done = true;
-    done++;
+    // updateTasks will recalc `done`
     updateTasks();
   }
 }
 
 // --- UPDATED AI COACH LOGIC ---
 async function coachReply() {
-    const inputField = document.getElementById('coachInput');
-    const outputField = document.getElementById('coachOutput');
-    const userText = inputField.value.trim();
-    if (!userText) return;
-  
-    // 1. Show Loading State
-    outputField.classList.add('visible');
-    outputField.innerHTML = "<span class='loading'>Tänker...</span>";
+  const inputField = document.getElementById('coachInput');
+  const outputField = document.getElementById('coachOutput');
+  if (!inputField || !outputField) return;
+  const userText = (inputField.value || '').trim();
+  if (!userText) return;
+
+  // 1. Show Loading State
+  try { outputField.classList.add('visible'); } catch (e) {}
+  outputField.innerHTML = "<span class='loading'>Tänker...</span>";
   
     try {
       const finalPrompt = `${SYSTEM_PROMPT}\n\nFråga: ${userText}`;
@@ -156,16 +168,37 @@ async function coachReply() {
       );
   
       const data = await response.json();
-      
+
       if (data.error) {
           console.error("API Error:", data.error);
           outputField.innerHTML = `<span style="color:red; font-weight:bold;">API ERROR:</span><br>${data.error.message}`;
           return;
       }
-  
-      if (data.candidates && data.candidates[0].content) {
-         const rawText = data.candidates[0].content.parts[0].text;
-         const formattedText = rawText
+
+      // Robust extraction of text from several possible response shapes
+      let rawText = '';
+      try {
+        if (data.candidates && data.candidates[0]) {
+          const c = data.candidates[0];
+          if (c.content && c.content.parts && c.content.parts.length) {
+            rawText = c.content.parts.map(p => p.text || p).join('\n');
+          } else if (c.outputText) {
+            rawText = c.outputText;
+          }
+        } else if (data.outputText) {
+          rawText = data.outputText;
+        } else if (typeof data === 'string') {
+          rawText = data;
+        } else {
+          rawText = JSON.stringify(data, null, 2);
+        }
+      } catch (e) {
+        console.error('Parsing error:', e, data);
+        rawText = JSON.stringify(data, null, 2);
+      }
+
+      if (rawText) {
+         const formattedText = String(rawText)
            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
            .replace(/\* /g, '• ');
          outputField.innerHTML = formattedText;
