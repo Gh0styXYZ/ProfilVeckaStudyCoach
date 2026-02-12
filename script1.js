@@ -200,6 +200,26 @@ function updateTasks() {
   if (taskCountEl) taskCountEl.innerText = Math.max(0, tasks.length - done);
   if (doneCountEl) doneCountEl.innerText = done;
 
+  // Update progress bar and progress text
+  const progressFill = document.querySelector('.progress-fill');
+  const progressText = document.querySelector('.progress-text');
+  const total = tasks.length;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  if (progressFill) progressFill.style.width = percent + '%';
+  if (progressText) progressText.textContent = `${done} av ${total} klara denna vecka`;
+
+  // Update checklist to reflect current tasks (shows up to 8 latest)
+  const checklistEl = document.querySelector('.checklist');
+  if (checklistEl) {
+    checklistEl.innerHTML = '';
+    tasks.slice(0, 8).forEach(t => {
+      const li = document.createElement('li');
+      li.textContent = `${t.course} - ${t.task}`;
+      if (t.done) li.classList.add('done');
+      checklistEl.appendChild(li);
+    });
+  }
+
   // Also refresh dashboard mini list (next upcoming tasks)
   const dash = document.getElementById('dashboardTasks');
   if (dash) {
