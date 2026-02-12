@@ -467,6 +467,15 @@
   .api-key-actions { justify-content: flex-end; }
 }
 
+/* Task list visuals */
+.task-title { font-weight: 600; margin-bottom: 6px; }
+.task-meta { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+.task-deadline { font-size: 0.9rem; color: var(--muted); }
+.task-deadline.overdue { color: var(--danger); font-weight:700; }
+.task-deadline.due-today { color: var(--warning); font-weight:700; }
+.page ul#taskList li { display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:10px; }
+.page ul#taskList li.done { opacity:0.65; text-decoration: line-through; }
+
 /* Dark-mode overrides for the model selector to ensure readable text */
 [data-theme="dark"] #modelSelect {
   background: var(--surface);

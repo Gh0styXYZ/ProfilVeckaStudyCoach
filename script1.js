@@ -1,5 +1,6 @@
 let tasks = [];
 let done = 0;
+const TASKS_KEY = 'pv_tasks';
 
 // --- CONFIGURATION ---
 // API key is read from localStorage to avoid embedding secrets in source.
@@ -47,6 +48,34 @@ function updateApiKeyUI() {
   if (el) el.value = saved || '';
   if (status) status.textContent = saved ? 'Sparad' : 'Ej sparad';
 }
+
+function saveTasks() {
+  try {
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  } catch (e) {
+    console.error('Failed to save tasks to localStorage', e);
+  }
+}
+
+function loadTasks() {
+  try {
+    const raw = localStorage.getItem(TASKS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      tasks = parsed.map(t => ({
+        course: t.course || '',
+        task: t.task || '',
+        deadline: t.deadline || null,
+        done: !!t.done
+      }));
+      // ensure done count is correct
+      done = tasks.filter(t => t.done).length;
+    }
+  } catch (e) {
+    console.error('Failed to load tasks from localStorage', e);
+  }
+}
 const SYSTEM_PROMPT = "Du är en lärare på akademisk nivå. Svara kort och tydligt på enkla frågor. Var uppmuntrande och använd punktlistor när det behövs. Vid svårare frågor, utveckla svaret mer. Strukturera dina svar klart och koncist.";
 
 // Theme toggle
@@ -76,12 +105,18 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+    // load tasks from storage and initialize UI
+    loadTasks();
+    updateTasks();
     // initialize API key UI if present
     updateApiKeyUI();
   });
 } else {
   initTheme();
   document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+  // load tasks from storage and initialize UI
+  loadTasks();
+  updateTasks();
   // initialize API key UI if present
   updateApiKeyUI();
 }
@@ -99,11 +134,17 @@ function showSection(id) {
 function addTask() {
   const courseEl = document.getElementById('course');
   const taskEl = document.getElementById('task');
+  const deadlineEl = document.getElementById('deadline');
   if (!courseEl || !taskEl) return;
   const course = courseEl.value.trim();
   const task = taskEl.value.trim();
+  const deadline = deadlineEl ? (deadlineEl.value || '').trim() : '';
   if (!course || !task) return;
-  tasks.push({ course, task, done: false });
+  tasks.push({ course, task, deadline: deadline || null, done: false });
+  // clear inputs
+  courseEl.value = '';
+  taskEl.value = '';
+  if (deadlineEl) deadlineEl.value = '';
   updateTasks();
 }
 
@@ -113,7 +154,43 @@ function updateTasks() {
   list.innerHTML = '';
   tasks.forEach((t, i) => {
     const li = document.createElement('li');
-    li.innerHTML = `${t.course}: ${t.task} <button onclick="completeTask(${i})">✔</button>`;
+    const title = document.createElement('div');
+    title.className = 'task-title';
+    title.textContent = `${t.course}: ${t.task}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'task-meta';
+
+    // deadline / days left
+    if (t.deadline) {
+      const today = new Date();
+      const dl = new Date(t.deadline + 'T23:59:59');
+      const diffMs = dl - new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const dlSpan = document.createElement('span');
+      dlSpan.className = 'task-deadline';
+      if (diffDays < 0) {
+        dlSpan.textContent = `Försenad ${Math.abs(diffDays)} dag${Math.abs(diffDays) === 1 ? '' : 'ar'}`;
+        dlSpan.classList.add('overdue');
+      } else if (diffDays === 0) {
+        dlSpan.textContent = 'Sista dag idag';
+        dlSpan.classList.add('due-today');
+      } else {
+        dlSpan.textContent = `${diffDays} dag${diffDays === 1 ? '' : 'ar'} kvar`;
+      }
+      meta.appendChild(dlSpan);
+    }
+
+    // done toggle
+    const btn = document.createElement('button');
+    btn.className = 'primary small';
+    btn.textContent = t.done ? 'Ångra' : 'Markera klar';
+    btn.onclick = () => toggleTaskDone(i);
+    meta.appendChild(btn);
+
+    li.appendChild(title);
+    li.appendChild(meta);
+    if (t.done) li.classList.add('done');
     list.appendChild(li);
   });
   // Recalculate done in case tasks were mutated directly
@@ -122,15 +199,48 @@ function updateTasks() {
   const doneCountEl = document.getElementById('doneCount');
   if (taskCountEl) taskCountEl.innerText = Math.max(0, tasks.length - done);
   if (doneCountEl) doneCountEl.innerText = done;
+
+  // Also refresh dashboard mini list (next upcoming tasks)
+  const dash = document.getElementById('dashboardTasks');
+  if (dash) {
+    dash.innerHTML = '';
+    const upcoming = tasks.filter(t => !t.done).slice(0, 6);
+    upcoming.forEach((t) => {
+      const li = document.createElement('li');
+      const part = `${t.course}: ${t.task}`;
+      let info = '';
+      if (t.deadline) {
+        const today = new Date();
+        const dl = new Date(t.deadline + 'T23:59:59');
+        const diffDays = Math.ceil((dl - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) {
+          const daysLate = Math.abs(diffDays);
+          info = ` — Försenad ${daysLate} dag${daysLate === 1 ? '' : 'ar'}`;
+        } else if (diffDays === 0) {
+          info = ' — Sista dag idag';
+        } else {
+          info = ` — ${diffDays} dag${diffDays === 1 ? '' : 'ar'} kvar`;
+        }
+      }
+      li.textContent = part + info;
+      dash.appendChild(li);
+    });
+  }
+  // persist
+  saveTasks();
 }
 
 function completeTask(index) {
+  // For backward compatibility: mark task complete from dashboard list
   if (!tasks || !tasks[index]) return;
-  if (!tasks[index].done) {
-    tasks[index].done = true;
-    // updateTasks will recalc `done`
-    updateTasks();
-  }
+  tasks[index].done = true;
+  updateTasks();
+}
+
+function toggleTaskDone(index) {
+  if (!tasks || !tasks[index]) return;
+  tasks[index].done = !tasks[index].done;
+  updateTasks();
 }
 
 // --- UPDATED AI COACH LOGIC ---
