@@ -21,6 +21,32 @@ function promptAndSaveApiKey() {
   const k = prompt('Klistra in din API-nyckel (sparas i localStorage):');
   if (k) saveApiKey(k.trim());
 }
+
+// UI helpers for API key input present on the page
+function saveApiKeyFromInput() {
+  const el = document.getElementById('apiKeyInput');
+  if (!el) return;
+  const v = el.value.trim();
+  if (!v) {
+    alert('Ingen nyckel angiven. Klistra in din API-nyckel i fältet.');
+    return;
+  }
+  saveApiKey(v);
+  updateApiKeyUI();
+}
+
+function clearApiKeyFromInput() {
+  clearApiKey();
+  updateApiKeyUI();
+}
+
+function updateApiKeyUI() {
+  const el = document.getElementById('apiKeyInput');
+  const status = document.getElementById('apiKeyStatus');
+  const saved = getApiKey();
+  if (el) el.value = saved || '';
+  if (status) status.textContent = saved ? 'Sparad' : 'Ej sparad';
+}
 const SYSTEM_PROMPT = "Du är en lärare på akademisk nivå. Svara kort och tydligt på enkla frågor. Var uppmuntrande och använd punktlistor när det behövs. Vid svårare frågor, utveckla svaret mer. Strukturera dina svar klart och koncist.";
 
 // Theme toggle
@@ -50,10 +76,14 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+    // initialize API key UI if present
+    updateApiKeyUI();
   });
 } else {
   initTheme();
   document.querySelector('[data-section="dashboard"]')?.classList.add('active');
+  // initialize API key UI if present
+  updateApiKeyUI();
 }
 
 function showSection(id) {

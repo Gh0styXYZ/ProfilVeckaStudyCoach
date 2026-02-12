@@ -79,6 +79,17 @@
 
   <section id="coach" class="page">
     <h2>AI Coach</h2>
+    <div class="api-key-row">
+      <label for="apiKeyInput" class="muted">API-nyckel (klistra in här)</label>
+      <div class="api-key-controls">
+        <input id="apiKeyInput" type="password" placeholder="Klistra in API-nyckel här">
+        <div class="api-key-actions">
+          <button class="primary small" onclick="saveApiKeyFromInput()">Spara</button>
+          <button onclick="clearApiKeyFromInput()">Rensa</button>
+        </div>
+      </div>
+      <p class="muted" id="apiKeyStatus">Ej sparad</p>
+    </div>
     <label for="modelSelect" class="muted">Välj modell</label>
     <select id="modelSelect" aria-label="Välj AI-modell">
       <option value="gemini-3-flash-preview">gemini-3-flash-preview (snabb)</option>
