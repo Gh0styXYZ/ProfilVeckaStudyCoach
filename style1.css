@@ -509,4 +509,42 @@
   opacity: 0.9;
 }
 
+/* Decorative dotted overlay: larger/denser dots where the green accent is stronger */
+:root {
+  --dots-opacity: 0.12;
+  --dot-size-small: 1.5px;
+  --dot-gap-small: 14px;
+  --dot-size-large: 3px;
+  --dot-gap-large: 28px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    repeating-radial-gradient(circle at 15% 40%, rgba(34,197,94,var(--dots-opacity)) 0 var(--dot-size-small), transparent calc(var(--dot-size-small) + 1px) var(--dot-gap-small)),
+    repeating-radial-gradient(circle at 75% 60%, rgba(34,197,94,calc(var(--dots-opacity) * 1.4)) 0 var(--dot-size-large), transparent calc(var(--dot-size-large) + 1px) var(--dot-gap-large));
+  background-size: cover;
+  mix-blend-mode: overlay;
+  opacity: 0.95;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.0) 100%);
+  mask-image: linear-gradient(90deg, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.0) 100%);
+}
+
+/* Ensure UI layers render above overlay */
+nav, main, .page, .widget { position: relative; z-index: 1; }
+
+[data-theme="dark"] body::before {
+  background-image:
+    repeating-radial-gradient(circle at 15% 40%, rgba(34,197,94,0.06) 0 var(--dot-size-small), transparent calc(var(--dot-size-small) + 1px) var(--dot-gap-small)),
+    repeating-radial-gradient(circle at 75% 60%, rgba(74,222,128,0.12) 0 var(--dot-size-large), transparent calc(var(--dot-size-large) + 1px) var(--dot-gap-large));
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.0) 100%);
+  mask-image: linear-gradient(90deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.0) 100%);
+}
+
   
