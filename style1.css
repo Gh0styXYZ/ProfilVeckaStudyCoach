@@ -524,14 +524,18 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  /* mirror dark theme's dotted effect but tuned for light backgrounds */
+  /* stronger, multiply-blended dotted overlay tuned for light backgrounds */
   background-image:
-    repeating-radial-gradient(circle at 15% 40%, rgba(34,197,94,var(--dots-opacity)) 0 var(--dot-size-small), transparent calc(var(--dot-size-small) + 1px) var(--dot-gap-small)),
-    repeating-radial-gradient(circle at 75% 60%, rgba(34,197,94,calc(var(--dots-opacity) * 1.4)) 0 var(--dot-size-large), transparent calc(var(--dot-size-large) + 1px) var(--dot-gap-large));
+    repeating-radial-gradient(circle at 15% 40%, rgba(34,197,94,0.10) 0 var(--dot-size-small), transparent calc(var(--dot-size-small) + 1px) var(--dot-gap-small)),
+    repeating-radial-gradient(circle at 75% 60%, rgba(34,197,94,0.18) 0 var(--dot-size-large), transparent calc(var(--dot-size-large) + 1px) var(--dot-gap-large));
   background-size: cover;
-  mix-blend-mode: overlay;
-  opacity: 0.95;
-  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.0) 100%);
-  mask-image: linear-gradient(90deg, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.0) 100%);
+  /* multiply keeps the dots visible; tuned for subtle green */
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+  /* fade dots gently along the gradient direction so they blend at edges */
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.92) 40%, rgba(0,0,0,0.0) 100%);
+  mask-image: linear-gradient(90deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.92) 40%, rgba(0,0,0,0.0) 100%);
 }
 
 /* Ensure UI layers render above overlay */
